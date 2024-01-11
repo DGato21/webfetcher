@@ -34,6 +34,9 @@ namespace Infrastructure.CrossCutting
             {
                 var htmlNode = htmlDoc.DocumentNode.SelectNodes(sectionFilter);
 
+                if (htmlNode == null)
+                    throw new Exception($"WebPageSniffer.SearchURLFromContentDivAndClass: HTML Section not found.");
+
                 url = htmlNode.Descendants("div")
                     .Where(div => div.HasClass(classFilter))
                     .First().Descendants("a")
@@ -57,6 +60,9 @@ namespace Infrastructure.CrossCutting
             try
             {
                 var htmlNode = htmlDoc.DocumentNode.SelectNodes(section);
+
+                if (htmlNode == null)
+                    throw new Exception($"WebPageSniffer.SearchURLFromContentDivAndClass: HTML Section not found.");
 
                 url = htmlNode.Descendants("a")
                     .Where(a => a.GetAttributeValue("aria-label", "").Contains(ariaLabelFilter, StringComparison.InvariantCultureIgnoreCase))

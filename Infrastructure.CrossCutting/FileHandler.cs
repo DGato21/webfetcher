@@ -99,7 +99,8 @@ namespace Infrastructure.CrossCutting
             return output;
         }
 
-        public static string SaveFile(string downloadFileFolder, string fileName, byte[] data)
+        public static string SaveFile(string originalFileName, string originalFileExtension, 
+            string downloadFileFolder, string fileName, byte[] data)
         {
             string filePath = _baseSaveFile(downloadFileFolder, fileName);
             File.WriteAllBytes(filePath, data);
@@ -107,7 +108,8 @@ namespace Infrastructure.CrossCutting
             return filePath;
         }
 
-        public static string SaveFile(string downloadFileFolder, string fileName, IEnumerable<string> data)
+        public static string SaveFile(string originalFileName, string originalFileExtension,
+            string downloadFileFolder, string fileName, IEnumerable<string> data)
         {
             string filePath = _baseSaveFile(downloadFileFolder, fileName);
             File.WriteAllLines(filePath, data);

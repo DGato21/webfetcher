@@ -62,12 +62,15 @@ namespace Domain.Core.WebsiteFetcher
                 if (section.Section != null && section.FileFetch != null)
                 {
                     var response = await this.websiteGateway.FetchHtml(request);
-                    string nextSite = WebPageSniffer.SearchURLFromContentDivAndClass(response, section.Section.DivMainFilter, section.Section.SubDivElementFilter);
+                    string nextSite = WebPageSniffer.SearchURLFromContentAElementAndAriaLabel(response, section.Section.DivMainFilter, section.Section.SubDivElementFilter);
                     request.RelativeUrl = nextSite.CleanUrl(configuration.MainPageURL);
-                    var data = this.websiteGateway.FetchFile(request);
+                    var data = await this.websiteGateway.FetchFile(request);
+
+                    Console.WriteLine($@"{this.GetType().FullName}: Saving file in {section.FileFetch.OutputFolder} {section.FileFetch.OutputFileName}");
+                    FileHandler.SaveFile(section.FileFetch.OutputFolder, section.FileFetch.OutputFileName, data);
 
                     result.Add(new Domain.DTO.FileResultDTO(
-                        data.Result,
+                        data,
                         section.FileFetch.OutputFolder,
                         section.FileFetch.OutputFileName,
                         section.FileFetch.OutputFileExtension));
@@ -75,6 +78,10 @@ namespace Domain.Core.WebsiteFetcher
                 else if (section.FileFetch != null)
                 {
                     var data = await this.websiteGateway.FetchFile(request);
+
+                    Console.WriteLine($@"{this.GetType().FullName}: Saving file in {section.FileFetch.OutputFolder} {section.FileFetch.OutputFileName}");
+                    FileHandler.SaveFile(section.FileFetch.OutputFolder, section.FileFetch.OutputFileName, data);
+
                     result.Add(new Domain.DTO.FileResultDTO (
                         data, 
                         section.FileFetch.OutputFolder, 
@@ -89,7 +96,7 @@ namespace Domain.Core.WebsiteFetcher
                         string nextSite = WebPageSniffer.SearchURLFromContentDivAndClass(response, section.Section.DivMainFilter, section.Section.SubDivElementFilter);
                         //In case of redirect, means that the next fetch section relative URL should be the URL that was found in here
 
-                        if (configuration.PageList.Count < i + 1 && configuration.PageList[i + 1].receiveRelativeUrlFromPreviousSection)
+                        if (i + 1 < configuration.PageList.Count && configuration.PageList[i + 1].receiveRelativeUrlFromPreviousSection)
                             configuration.PageList[i + 1].RelativeURL = nextSite.CleanUrl(configuration.MainPageURL);
                     }
                     if (section.saveContent)
