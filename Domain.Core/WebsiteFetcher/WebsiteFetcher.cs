@@ -5,6 +5,7 @@ using Infrastructure.Configuration.AbstractConfigs;
 using Infrastructure.Configuration.Auxiliar;
 using Infrastructure.CrossCutting;
 using Infrastructure.Extensions;
+using System.Collections.Generic;
 
 namespace Domain.Core.WebsiteFetcher
 {
@@ -23,31 +24,31 @@ namespace Domain.Core.WebsiteFetcher
             this.websiteGateway = genericWebsiteGateway;
         }
 
-        public Task FetchWebsite(Guid requestGuid)
+        public async Task<IList<Domain.DTO.FetchResultDTO>> FetchWebsite(Guid requestGuid)
         {
-            
+            IList<Domain.DTO.FetchResultDTO> response = new List<Domain.DTO.FetchResultDTO>();
             switch (this.configuration.FetchType)
             {
                 case Infrastructure.Configuration.WebFetchType.Website:
-                    var response = fetchSingleWebsite(this.configuration as WebsiteConfiguration);
+                    response = await fetchSingleWebsite(this.configuration as WebsiteConfiguration);
                     break;
                 case Infrastructure.Configuration.WebFetchType.AutomaticWebsite:
-                    response = fetchAutomaticWebsite(this.configuration as WebsiteAutoConfiguration);
+                    response = await fetchAutomaticWebsite(this.configuration as WebsiteAutoConfiguration);
                     break;
             }
 
-            return Task.CompletedTask;
+            return response;
         }
 
         //TODO: Check if the use of both WebPageSniffer is working correctly for a generic case
 
-        private IList<Domain.DTO.FetchResultDTO> fetchAutomaticWebsite(WebsiteAutoConfiguration configuration)
+        private async Task<IList<Domain.DTO.FetchResultDTO>> fetchAutomaticWebsite(WebsiteAutoConfiguration configuration)
         {
             IList<Domain.DTO.FetchResultDTO> result = new List<Domain.DTO.FetchResultDTO>();
             for (int i = 0; i < configuration.PageList.Count; i++)
             {
                 AutomaticSectionFetch section = configuration.PageList[i];
-                var request = Domain.DTO.Mappers.WebsiteFetcherMapper.ToWebsiteGatewayRequest(configuration);
+                var request = Domain.DTO.Mappers.WebsiteFetcherMapper.ToWebsiteGatewayRequest(configuration, section);
 
                 //Validators (implement Validators???)
                 if (section == null)
@@ -58,21 +59,34 @@ namespace Domain.Core.WebsiteFetcher
                     throw new Exception($"{this.GetType().FullName}: Missing relative URL");
 
                 //Meaning that is a File Fetcher
-                if (section.FileFetch != null)
+                if (section.Section != null && section.FileFetch != null)
                 {
+                    var response = await this.websiteGateway.FetchHtml(request);
+                    string nextSite = WebPageSniffer.SearchURLFromContentDivAndClass(response, section.Section.DivMainFilter, section.Section.SubDivElementFilter);
+                    request.RelativeUrl = nextSite.CleanUrl(configuration.MainPageURL);
                     var data = this.websiteGateway.FetchFile(request);
+
+                    result.Add(new Domain.DTO.FileResultDTO(
+                        data.Result,
+                        section.FileFetch.OutputFolder,
+                        section.FileFetch.OutputFileName,
+                        section.FileFetch.OutputFileExtension));
+                }
+                else if (section.FileFetch != null)
+                {
+                    var data = await this.websiteGateway.FetchFile(request);
                     result.Add(new Domain.DTO.FileResultDTO (
-                        data.Result, 
+                        data, 
                         section.FileFetch.OutputFolder, 
                         section.FileFetch.OutputFileName, 
                         section.FileFetch.OutputFileExtension));
                 }
-                else
+                else if (section.Section != null)
                 {
-                    var response = this.websiteGateway.FetchHtml(request);
+                    var response = await this.websiteGateway.FetchHtml(request);
                     if (section.isRedirect)
                     {
-                        string nextSite = WebPageSniffer.SearchURLFromContentDivAndClass(response.Result, section.Section.DivMainFilter, section.Section.SubDivElementFilter);
+                        string nextSite = WebPageSniffer.SearchURLFromContentDivAndClass(response, section.Section.DivMainFilter, section.Section.SubDivElementFilter);
                         //In case of redirect, means that the next fetch section relative URL should be the URL that was found in here
 
                         if (configuration.PageList.Count < i + 1 && configuration.PageList[i + 1].receiveRelativeUrlFromPreviousSection)
@@ -80,14 +94,14 @@ namespace Domain.Core.WebsiteFetcher
                     }
                     if (section.saveContent)
                     {
-                        result.Add(new Domain.DTO.HtmlResultDTO(response.Result));
+                        result.Add(new Domain.DTO.HtmlResultDTO(response));
                     }
                 }
             }
             return result;
         }
 
-        private IList<Domain.DTO.FetchResultDTO> fetchSingleWebsite(WebsiteConfiguration configuration)
+        private async Task<IList<Domain.DTO.FetchResultDTO>> fetchSingleWebsite(WebsiteConfiguration configuration)
         {
             IList<Domain.DTO.FetchResultDTO> result = new List<Domain.DTO.FetchResultDTO>(1); //It will have only one response
 
@@ -116,13 +130,13 @@ namespace Domain.Core.WebsiteFetcher
 
                 if (sectionFetch != null && fileFetch != null)
                 {
-                    var response = this.websiteGateway.FetchHtml(request);
-                    string nextSite = WebPageSniffer.SearchURLFromContentDivAndClass(response.Result, sectionFetch.DivMainFilter, sectionFetch.SubDivElementFilter);
+                    var response = await this.websiteGateway.FetchHtml(request);
+                    string nextSite = WebPageSniffer.SearchURLFromContentDivAndClass(response, sectionFetch.DivMainFilter, sectionFetch.SubDivElementFilter);
                     request.RelativeUrl = nextSite.CleanUrl(configuration.MainPageURL);
-                    var data = this.websiteGateway.FetchFile(request);
+                    var data = await this.websiteGateway.FetchFile(request);
 
                     result.Add(new Domain.DTO.FileResultDTO(
-                        data.Result,
+                        data,
                         fileFetch.OutputFolder,
                         fileFetch.OutputFileName,
                         fileFetch.OutputFileExtension));
@@ -132,10 +146,10 @@ namespace Domain.Core.WebsiteFetcher
                     if (request.RelativeUrl == null)
                         throw new Exception($"{this.GetType().FullName}: Missing relative URL");
 
-                    var data = this.websiteGateway.FetchFile(request);
+                    var data = await this.websiteGateway.FetchFile(request);
 
                     result.Add(new Domain.DTO.FileResultDTO(
-                        data.Result,
+                        data,
                         fileFetch.OutputFolder,
                         fileFetch.OutputFileName,
                         fileFetch.OutputFileExtension));
@@ -145,9 +159,9 @@ namespace Domain.Core.WebsiteFetcher
                     if (request.RelativeUrl == null)
                         throw new Exception($"{this.GetType().FullName}: Missing relative URL");
 
-                    var response = this.websiteGateway.FetchHtml(request);
+                    var response = await this.websiteGateway.FetchHtml(request);
 
-                    var data = WebPageSniffer.GetPageContentFromSection(response.Result, sectionFetch.DivMainFilter);
+                    var data = WebPageSniffer.GetPageContentFromSection(response, sectionFetch.DivMainFilter);
 
                     result.Add(new Domain.DTO.HtmlResultDTO(data));
                 }

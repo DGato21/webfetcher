@@ -2,8 +2,8 @@
 {
     public interface IClient
     {
-        public Task<string> FetchWebpage(string url);
+        public Task<string> FetchWebpageAsync(string url);
 
-        public Task<byte[]> FetchFile(string url);
+        public Task<byte[]> FetchFileAsync(string url);
     }
 }

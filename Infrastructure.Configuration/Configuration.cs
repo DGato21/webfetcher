@@ -1,5 +1,7 @@
 ﻿using Infrastructure.Configuration.AbstractConfigs;
 using Infrastructure.Configuration.SpecificConfigs;
+using Newtonsoft.Json.Converters;
+using System.Text.Json.Serialization;
 
 namespace Infrastructure.Configuration
 {
@@ -18,6 +20,7 @@ namespace Infrastructure.Configuration
         }
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum WebFetchType
     {
         AutomaticWebsite,

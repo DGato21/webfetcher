@@ -14,24 +14,26 @@ namespace Data.Gateway.GenericWebsiteGateway
 
         //TODO: Improve the part of Async with await (check why it's not working)
 
-        public async Task<string> FetchWebpage(string url)
+        public async Task<string> FetchWebpageAsync(string url)
         {
             try
             {
-                var response = await httpClient.GetStringAsync(url).ConfigureAwait(false);
+                var response = this.httpClient.GetStringAsync(url).ConfigureAwait(false);
+                var result = response.GetAwaiter().GetResult();
 
-                return response;
+                return result;
             }
             catch (Exception ex) { throw ex; }
         }
 
-        public async Task<byte[]> FetchFile(string url)
+        public async Task<byte[]> FetchFileAsync(string url)
         {
             try
             {
-                var response = await httpClient.GetByteArrayAsync(url).ConfigureAwait(false);
+                var response = this.httpClient.GetByteArrayAsync(url).ConfigureAwait(false);
+                var result = response.GetAwaiter().GetResult();
 
-                return response;
+                return result;
             }
             catch (Exception ex) { throw ex; }
         }

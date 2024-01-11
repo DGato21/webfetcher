@@ -1,0 +1,24 @@
+{
+  "absGatewayConfiguration": {
+    "MainPageBaseURL": "https://www.abs.gov.au",
+    "MainPageRelativeURL": "/statistics/labour/employment-and-unemployment/labour-force-australia",
+    "DownloadFileFolder": "Downloads",
+    "MainFileName": "data.xlsx",
+    "DateColumnNr": 0,
+    "DateStringFormat": "MMM-yyyy",
+    "OutputFileFolder": "Output",
+    "OutputFileName": "output.csv",
+
+    "SECTION_MAINPAGE_FILTER": ".//*[contains(@class,'view-display-id-topic_latest_release_block')]",
+    "SECTION_MAINPAGE_HREFDIV": "views-row",
+    "SECTION_DATAPAGE_FILTER": ".//*[contains(@class,'download-link file file--mime-application-vnd-openxmlformats-officedocument-spreadsheetml-sheet file--x-office-spreadsheet')]",
+    "SECTION_DATAPAGE_HREFDIV": "Table 1.",
+
+    "FILE_TABLE_SHEET": "Data1",
+    "FILE_FILTERTABLE_ROWNR": 8
+  },
+  "yts": {
+    "MainPageBaseURL": "https://yts.rs",
+    "MainPageRelativeURL":  "/browse-movies/{filter}/all/all/0/latest"
+  }
+}

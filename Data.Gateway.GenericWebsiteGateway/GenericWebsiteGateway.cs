@@ -14,12 +14,12 @@ namespace Data.Gateway.GenericWebsiteGateway
 
         public Task<string> FetchHtml(WebsiteGatewayRequest request)
         {
-            return this.client.FetchWebpage(request.Url);
+            return this.client.FetchWebpageAsync(request.Url);
         }
 
         public Task<byte[]> FetchFile(WebsiteGatewayRequest request)
         {
-            return this.client.FetchFile(request.Url);
+            return this.client.FetchFileAsync(request.Url);
         }
     }
 }

@@ -17,8 +17,42 @@
     "FILE_TABLE_SHEET": "Data1",
     "FILE_FILTERTABLE_ROWNR": 8
   },
-  "yts": {
-    "MainPageBaseURL": "https://yts.rs",
-    "MainPageRelativeURL":  "/browse-movies/{filter}/all/all/0/latest"
-  }
+  "configurationList": [
+    {
+      "FetchType": "AutomaticWebsite",
+      "MainPageURL": "https://www.abs.gov.au",
+      "PageList": [
+        {
+          "RelativeUrl": "/statistics/labour/employment-and-unemployment/labour-force-australia",
+          "Section": {
+            "DivMainFilter": ".//*[contains(@class,'view-display-id-topic_latest_release_block')]",
+            "SubDivElementFilter": "views-row"
+          },
+          "FileFetch": null,
+          "isRedirect": true,
+          "saveContent": false,
+          "receiveRelativeUrlFromPreviousSection": false
+        },
+        {
+          "RelativeUrl": "",
+          "Section": {
+            "DivMainFilter": ".//*[contains(@class,'download-link file file--mime-application-vnd-openxmlformats-officedocument-spreadsheetml-sheet file--x-office-spreadsheet')]",
+            "SubDivElementFilter": "Table 1."
+          },
+          "FileFetch": {
+            "DateStringFormat": "MMM-yyyy",
+            "DownloadFolder": "Downloads",
+            "DownloadFileName": "data.xlsx",
+            "DownloadFileExtension": ".xlsx",
+            "OutputFolder": "Output",
+            "OutputFileName": "output.csv",
+            "OutputFileExtension": ".csv"
+          },
+          "isRedirect": false,
+          "saveContent": false,
+          "receiveRelativeUrlFromPreviousSection": true
+        }
+      ]
+    }
+  ]
 }
